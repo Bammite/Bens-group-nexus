@@ -329,6 +329,8 @@
     padding: 10px;
     border-top: 1px solid #ddd;
     background-color: var(--accent-color); /* Mise à jour */
+    max-width: 100%;
+    overflow: hidden;
 }
 
 #user-input {
@@ -340,6 +342,7 @@
     outline: none;
     color: var(--secondary-color); /* Mise à jour */
     font-family: var(--font-family); /* Mise à jour */
+    width: 70%;
 }
 
 #send-btn {

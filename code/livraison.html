@@ -4,7 +4,6 @@
   <meta charset="utf-8" />
   <title>Suivi de livraison en direct</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
   <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet" />
   <style>
     body, html { margin: 0; padding: 0; height: 100%; }
@@ -25,6 +24,12 @@
 <body>
 
 <div id="map"></div>
+  <script src="./accesoire/ElementPrimaire/loader.js"></script>
+
+  <script> 
+    LoadingAnimation.start();
+  </script>
+  <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
 
 <script>
     // le jeton d'accès Mapbox
@@ -33,7 +38,6 @@
     // Coordonnées de départ (Dakar, Point E) et d'arrivée (Dakar, Plateau)
     const pointA = [-17.475, 14.703]; // Point E
     const pointB = [-17.442, 14.671]; // Plateau
-
     const map = new mapboxgl.Map({
       container: 'map',
       style: 'mapbox://styles/mapbox/streets-v12',
@@ -82,7 +86,7 @@
       // 5. Ajuster la carte pour voir tout l'itinéraire
       const bounds = new mapboxgl.LngLatBounds(pointA, pointB);
       map.fitBounds(bounds, { padding: 80 });
-      
+      LoadingAnimation.stop();
       // 6. Démarrer la simulation du mouvement du livreur
       simulateDelivery(routeCoordinates);
     });
@@ -93,10 +97,12 @@
      * Récupère l'itinéraire depuis l'API Mapbox Directions
      */
     async function getRoute(start, end) {
+      //LoadingAnimation.start();
       const url = `https://api.mapbox.com/directions/v5/mapbox/driving/${start[0]},${start[1]};${end[0]},${end[1]}?geometries=geojson&access_token=${mapboxgl.accessToken}`;
       const response = await fetch(url);
       const data = await response.json();
       console.log(data);
+      //LoadingAnimation.stop();
       return {
         type: 'Feature',
         geometry: data.routes[0].geometry
