@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inscription/Connexion par Téléphone avec Firebase</title>
+    <!-- Inclure les SDK Firebase via CDN -->
+    <!-- Firebase App (toujours nécessaire) -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <!-- Firebase Auth -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start; /* Alignement en haut pour le reCAPTCHA */
+            min-height: 100vh;
+            background-color: #f0f2f5;
+            margin: 20px;
+        }
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+        h2 {
+            color: #333;
+            margin-bottom: 25px;
+        }
+        input[type="tel"], input[type="text"], button {
+            width: calc(100% - 20px);
+            padding: 12px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-sizing: border-box; /* Pour inclure le padding dans la largeur */
+        }
+        button {
+            background-color: #4285F4; /* Couleur Google Blue */
+            color: white;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #357ae8;
+        }
+        #message {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        #smsCodeContainer {
+            display: none; /* Masqué par défaut */
+            margin-top: 20px;
+            border-top: 1px solid #eee;
+            padding-top: 20px;
+        }
+        #recaptcha-container {
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>S'inscrire / Se Connecter par Téléphone</h2>
+
+        <!-- Section pour l'entrée du numéro de téléphone -->
+        <div>
+            <label for="phoneNumber">Numéro de Téléphone (Ex: +33612345678):</label>
+            <input type="tel" id="phoneNumber" placeholder="+33612345678" required>
+            <button id="sendCodeButton">Envoyer le code de vérification</button>
+        </div>
+
+        <!-- Conteneur reCAPTCHA (peut être invisible) -->
+        <div id="recaptcha-container"></div>
+
+        <!-- Section pour l'entrée du code SMS (initialement masquée) -->
+        <div id="smsCodeContainer">
+            <label for="smsCode">Code de vérification SMS:</label>
+            <input type="text" id="smsCode" placeholder="Votre code SMS" required>
+            <button id="verifyCodeButton">Valider le code</button>
+        </div>
+
+        <!-- Zone pour afficher les messages -->
+        <div id="message"></div>
+    </div>
+
+    <script>
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDmP8T2V6Ymui2jK3hfQfy--rXQDlxuttk",
+            authDomain: "bensnexus-4933d.firebaseapp.com",
+            databaseURL: "https://bensnexus-4933d-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "bensnexus-4933d",
+            storageBucket: "bensnexus-4933d.firebasestorage.app",
+            messagingSenderId: "334482962830",
+            appId: "1:334482962830:web:cf4a402fe2cef9d2e54cdf",
+            measurementId: "G-HMSWN2M9XK"
+        };
+
+        // Initialiser Firebase
+        firebase.initializeApp(firebaseConfig);
+
+        // Obtenir l'instance Auth
+        const auth = firebase.auth();
+
+        // Références aux éléments HTML
+        const phoneNumberInput = document.getElementById('phoneNumber');
+        const sendCodeButton = document.getElementById('sendCodeButton');
+        const recaptchaContainer = document.getElementById('recaptcha-container');
+        const smsCodeContainer = document.getElementById('smsCodeContainer');
+        const smsCodeInput = document.getElementById('smsCode');
+        const verifyCodeButton = document.getElementById('verifyCodeButton');
+        const messageDisplay = document.getElementById('message');
+
+        let confirmationResult; // Pour stocker le résultat de l'envoi du code
+
+        // Fonction pour afficher les messages
+        function showMessage(msg, type) {
+            messageDisplay.textContent = msg;
+            messageDisplay.className = `message ${type}`;
+        }
+
+        // --- Étape 1 : Configurer reCAPTCHA et Envoyer le code SMS ---
+        sendCodeButton.addEventListener('click', async () => {
+            const phoneNumber = phoneNumberInput.value.trim();
+
+            if (!phoneNumber) {
+                showMessage("Veuillez entrer un numéro de téléphone.", "error");
+                return;
+            }
+
+            // Pour éviter les envois multiples si l'utilisateur clique trop vite
+            sendCodeButton.disabled = true;
+            showMessage("Envoi du code...", "");
+
+            try {
+                // Initialiser le RecaptchaVerifier
+                // 'recaptcha-container' est l'ID du div où le reCAPTCHA sera rendu.
+                // 'size': 'invisible' signifie qu'il ne sera pas affiché comme une boîte de dialogue.
+                window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier(recaptchaContainer, {
+                    'size': 'invisible',
+                    'callback': (response) => {
+                        // reCAPTCHA a été résolu, tu peux continuer à envoyer le code.
+                        // Ce callback n'est pas toujours appelé directement pour 'invisible'
+                        // car l'action se déclenche avec signInWithPhoneNumber.
+                        console.log("reCAPTCHA résolu (callback).");
+                    },
+                    'expired-callback': () => {
+                        // reCAPTCHA a expiré, l'utilisateur doit le refaire.
+                        showMessage("La vérification reCAPTCHA a expiré. Veuillez réessayer.", "error");
+                        sendCodeButton.disabled = false; // Réactiver le bouton
+                        window.recaptchaVerifier.clear(); // Efface l'état du reCAPTCHA
+                        // Il peut être utile de re-rendre le reCAPTCHA si nécessaire, ou simplement
+                        // laisser l'utilisateur re-cliquer pour relancer le flux.
+                    }
+                });
+
+                // Rendre le reCAPTCHA (nécessaire pour invisible)
+                await window.recaptchaVerifier.render();
+
+                // Envoyer le code SMS au numéro de téléphone
+                confirmationResult = await auth.signInWithPhoneNumber(phoneNumber, window.recaptchaVerifier);
+
+                // Si le code est envoyé avec succès :
+                showMessage("Code SMS envoyé ! Veuillez entrer le code de vérification.", "success");
+                smsCodeContainer.style.display = 'block'; // Afficher le champ pour le code SMS
+                sendCodeButton.style.display = 'none'; // Masquer le bouton d'envoi
+                phoneNumberInput.disabled = true; // Désactiver l'édition du numéro
+
+            } catch (error) {
+                console.error("Erreur lors de l'envoi du code SMS:", error);
+                showMessage(`Erreur: ${error.message} (Code: ${error.code})`, "error");
+                sendCodeButton.disabled = false; // Réactiver le bouton en cas d'erreur
+                phoneNumberInput.disabled = false; // Réactiver l'édition du numéro
+                window.recaptchaVerifier.clear(); // Efface l'état du reCAPTCHA
+                // Si l'erreur est liée au reCAPTCHA, le reCAPTCHA est réinitialisé.
+            }
+        });
+
+        // --- Étape 2 : Vérifier le code SMS et finaliser l'inscription/connexion ---
+        verifyCodeButton.addEventListener('click', async () => {
+            const smsCode = smsCodeInput.value.trim();
+
+            if (!smsCode) {
+                showMessage("Veuillez entrer le code SMS.", "error");
+                return;
+            }
+
+            if (!confirmationResult) {
+                showMessage("Aucun code SMS n'a été envoyé. Veuillez réessayer.", "error");
+                return;
+            }
+
+            verifyCodeButton.disabled = true;
+            showMessage("Vérification du code...", "");
+
+            try {
+                // Confirmer le code SMS
+                const userCredential = await confirmationResult.confirm(smsCode);
+
+                // L'utilisateur est connecté ! (ou inscrit si c'était un nouveau numéro)
+                const user = userCredential.user;
+                showMessage(`Connexion/Inscription réussie pour ${user.phoneNumber} !`, "success");
+                console.log("Utilisateur connecté/inscrit:", user);
+
+                // Réinitialiser le formulaire
+                phoneNumberInput.value = '';
+                smsCodeInput.value = '';
+                smsCodeContainer.style.display = 'none';
+                sendCodeButton.style.display = 'block';
+                sendCodeButton.disabled = false;
+                phoneNumberInput.disabled = false;
+
+                // Si tu veux rediriger l'utilisateur après la connexion/inscription
+                // window.location.href = '/dashboard';
+
+            } catch (error) {
+                console.error("Erreur lors de la vérification du code SMS:", error);
+                // Si le code est invalide, l'erreur.code sera 'auth/invalid-verification-code'
+                showMessage(`Code SMS invalide ou expiré. Veuillez réessayer. (${error.message})`, "error");
+                verifyCodeButton.disabled = false; // Réactiver le bouton
+            }
+        });
+
+        // Écouteur pour l'état de l'authentification (utile pour savoir quand un utilisateur se connecte/déconnecte)
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                console.log("État de l'authentification: Utilisateur est connecté.");
+                // Tu peux mettre à jour l'UI ici si l'utilisateur est déjà connecté
+            } else {
+                console.log("État de l'authentification: Aucun utilisateur connecté.");
+            }
+        });
+
+    </script>
+</body>
+</html>

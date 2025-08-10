@@ -1,0 +1,158 @@
+/*navbar.css*/
+
+
+/* Barre de navigation */
+.main-header {
+    z-index: 10;
+    height: 70px;
+    width: 100%;
+    background: rgba(251, 228, 228, 0.443);
+    backdrop-filter: blur(17px);
+    -webkit-backdrop-filter: blur(10px); /* Pour Safari */
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    position: fixed;
+    top: 0;
+    padding: 10px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: rgb(16, 14, 14);
+}
+
+.main-header nav {
+    display: flex;
+    align-items: center;
+    max-width: 600px;
+    justify-content: space-between;
+    width: 70%;
+}
+.main-header nav .menu {
+    list-style: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.menu{
+    padding: 16px 25px;
+}
+
+.main-header nav .menu li {
+    cursor: pointer;
+}
+
+
+/* Menu actif */
+.menu .indexé {
+    /* color: var(--accent-color); */
+    font-weight: bold;
+    font-size: 1.2em;
+    border-bottom: var(--primary-color) solid 2px;
+}
+
+.main-header nav a {
+    color: var(--secondary-color);
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+.main-header nav a:hover {
+    color: var(--primary-color);
+}
+
+.main-header nav .auth-button a {
+    background-color: var(--primary-color);
+    color: var(--accent-color);
+    border: none;
+    padding: 5px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    transition: all 0.3s ease-in-out;
+}
+
+.main-header nav .auth-button a:hover{
+    background-color: var(--accent-color);
+}
+
+.main-header nav .auth-button:hover a{
+    color: var(--primary-color);
+}
+
+
+/* Responsive */
+
+
+@media (max-width: 900px) {
+    .main-header nav{
+        width: 40px;
+        z-index: 15;
+    }
+    .menu {
+        display: flex;
+        flex-direction: column;
+        position: fixed;
+        top: 80px;
+        right: 0;
+        border-radius: 5px;
+        height: 0;
+        transition: all 0.3s ease-in-out;
+        z-index: 15;
+        overflow: hidden;
+        width: 100vw;
+        text-transform: uppercase;
+        padding: 0;
+        margin: 0;
+        text-align: center;
+        width: 0;
+    }
+
+    .menu li{
+        background: rgba(251, 228, 228, 0.443);
+        backdrop-filter: blur(17px);
+        -webkit-backdrop-filter: blur(10px); /* Pour Safari */
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 5px;
+        padding: 10px;
+        width: 98vw;
+    }
+
+    .menu li a{
+        width: 95vw;
+    }
+    .minibarre{
+        display: none;
+    }
+
+    .menu.active {
+        height: 300px;
+        padding: 0;
+    }
+
+    .hamburger {
+        display: flex;
+    }
+    .accueil .content .Slogan{
+        font-size: 2.3em;
+        font-weight: bold;
+        max-width: 90%;
+        margin-left: 20px;
+    }
+    .pubText{
+        max-width: 50%;
+    }
+    .accueil footer{
+        font-size: 6px;
+    }
+    
+    .minibarre-bleue{
+        height: 10px;
+        width: 1px;
+        margin:5px;
+        background-color: var(--secondary-color);
+    }
+
+}

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Vérification du code</title>
+    <link rel="stylesheet" href="./css/authentification.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-header">
+            <h2>Vérification du compte</h2>
+            <p>Entrez le code reçu par email ou SMS pour valider votre inscription.</p>
+        </div>
+        <div class="auth-content">
+            <form id="otp-form" class="auth-form active">
+                <div class="form-group">
+                    <label for="otp-code">Code de vérification</label>
+                    <input type="text" id="otp-code" class="form-control" maxlength="6" required placeholder="Code OTP">
+                    <div class="error-message" id="otp-error"></div>
+                </div>
+                <button type="submit" class="btn">Vérifier</button>
+                <div class="loading" id="otp-loading" style="display:none;">
+                    <div class="loading-spinner"></div>
+                    <p>Vérification en cours...</p>
+                </div>
+            </form>
+        </div>
+    </div>
+    <script>
+        document.getElementById('otp-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            document.getElementById('otp-loading').style.display = 'block';
+            const code = document.getElementById('otp-code').value.trim();
+            if (!code) {
+                document.getElementById('otp-error').textContent = 'Veuillez entrer le code reçu.';
+                document.getElementById('otp-loading').style.display = 'none';
+                return;
+            }
+            // Ici, tu peux appeler ton backend ou utiliser Firebase JS pour vérifier le code
+            // Exemple d'appel backend :
+            /*
+            const response = await fetch('/api/verify-otp', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ code })
+            });
+            const result = await response.json();
+            if (result.success) {
+                window.location.href = '/';
+            } else {
+                document.getElementById('otp-error').textContent = result.error || 'Code incorrect';
+            }
+            */
+            // Pour la démo, on simule la réussite :
+            setTimeout(() => {
+                document.getElementById('otp-loading').style.display = 'none';
+                window.location.href = '/';
+            }, 1500);
+        });
+    </script>
+</body>
+</html>
