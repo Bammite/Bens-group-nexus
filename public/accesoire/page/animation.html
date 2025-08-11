@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test de l'Animation de Chargement</title>
+    <style>
+        /* Styles de base pour la démo */
+        body { font-family: sans-serif; padding: 20px; }
+        #mon-conteneur {
+            width: 400px;
+            height: 300px;
+            border: 2px solid #ccc;
+            background-color: #f0f0f0;
+            padding: 1em;
+            margin-top: 20px;
+            text-align: center;
+        }
+        button {
+            padding: 10px 15px;
+            font-size: 16px;
+            margin: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Démonstration du Loader</h1>
+
+    <h2>Mode Plein Écran</h2>
+    <button onclick="testerLoaderPleinEcran()">Lancer le loader plein écran (pendant 3s)</button>
+
+    <hr>
+
+    <h2>Mode sur Élément Spécifique</h2>
+    <button onclick="testerLoaderElement('mon-conteneur')">Lancer le loader sur le cadre (pendant 3s)</button>
+    <div id="mon-conteneur">
+        <h3>Ceci est mon conteneur</h3>
+        <p>Le chargement apparaîtra par-dessus ce cadre.</p>
+    </div>
+
+    <script src="loader.js"></script>
+
+    <script>
+        function testerLoaderPleinEcran() {
+            console.log("Démarrage du chargement plein écran...");
+            LoadingAnimation.start(); // Démarre l'animation
+
+            // Simule une tâche asynchrone (ex: un appel fetch)
+            setTimeout(() => {
+                console.log("...Arrêt du chargement plein écran.");
+                LoadingAnimation.stop(); // Arrête l'animation après 3 secondes
+            }, 3000);
+        }
+
+        function testerLoaderElement(id) {
+            console.log(`Démarrage du chargement sur l'élément #${id}...`);
+            LoadingAnimation.start(id); // Démarre l'animation sur l'élément
+
+            setTimeout(() => {
+                console.log(`...Arrêt du chargement sur #${id}.`);
+                LoadingAnimation.stop(id); // Arrête l'animation sur le même élément
+            }, 3000);
+        }
+    </script>
+
+</body>
+</html>
